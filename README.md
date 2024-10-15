@@ -34,6 +34,22 @@ The Secure Encrypted Data Aggregation POC is a backend simulation designed to de
 - Docker
 - Git
 
+#### Installation
+1. Clone the Repository
+```
+git clone https://github.com/your_username/secure_data_aggregation_poc.git
+cd secure_data_aggregation_poc
+```
+2. Build Docker Image
+```
+git clone https://github.com/your_username/secure_data_aggregation_poc.git
+cd secure_data_aggregation_poc
+```
+3. Running Docker Container
+```
+docker run -d -p 5000:5000 --name secure_data_aggregation_poc secure-data-aggregation-poc
+```
+
 ---
 ### Future Enchanments
 - Exploring Full Homomorphic Encryption for more complex computations
