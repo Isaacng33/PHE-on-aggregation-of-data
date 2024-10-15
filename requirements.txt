@@ -1,3 +1,4 @@
 Flask==3.0.3
 phe==1.5.0
 pytest==8.3.3
+pylint==3.3.1
