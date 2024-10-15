@@ -36,11 +36,11 @@ The Secure Encrypted Data Aggregation POC is a backend simulation designed to de
 
 ---
 
-### Libraries 
+### Libraries
 
 [python-paillier](https://github.com/data61/python-paillier)
 
---- 
+---
 
 ### Setup Instruction
 
@@ -51,18 +51,24 @@ The Secure Encrypted Data Aggregation POC is a backend simulation designed to de
 - Git
 
 #### Installation
+
 1. Clone the Repository
-```
+
+```Shell
 git clone https://github.com/your_username/secure_data_aggregation_poc.git
 cd secure_data_aggregation_poc
 ```
+
 2. Build Docker Image
-```
+
+```Shell
 git clone https://github.com/your_username/secure_data_aggregation_poc.git
 cd secure_data_aggregation_poc
 ```
+
 3. Running Docker Container
-```
+
+```Shell
 docker run -d -p 5000:5000 --name secure_data_aggregation_poc secure-data-aggregation-poc
 ```
 

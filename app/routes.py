@@ -1,5 +1,5 @@
 # app/routes.py
-
+'''Module to handle API Routes'''
 from flask import Blueprint
 
 main = Blueprint('main', __name__)

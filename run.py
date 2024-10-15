@@ -1,4 +1,4 @@
-# run.py
+""" Run Interface """
 from app import create_app
 
 app = create_app()
