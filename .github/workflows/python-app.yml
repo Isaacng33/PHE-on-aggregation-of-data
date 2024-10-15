@@ -23,7 +23,11 @@ jobs:
 
     - name : Build Docker Image
       run: |
-        docker build -t he-poc .  
+        docker build -t he-poc . 
+
+    - name: Lint Code
+      run: |
+        docker run --rm he-poc pylint .
 
     - name: Run tests in Docker container
       run: |
