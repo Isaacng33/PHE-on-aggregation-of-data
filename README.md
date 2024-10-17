@@ -11,6 +11,7 @@
 ### Project Overview
 
 The Secure Encrypted Data Aggregation POC is a backend simulation designed to demonstrate the feasibility of securely aggregating encrypted financial data using Partically Homomorphic Encryption. The system ensure that sensitive financial data remains confidential while allow an individual to view the results without exposing raw data.
+Implemented with Flask as the framework in order to have a seamless futrue enchancment into a web application
 
 ---
 
