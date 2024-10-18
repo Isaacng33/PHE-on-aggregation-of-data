@@ -82,7 +82,7 @@ docker run -d -p 5000:5000 --name secure_data_aggregation_poc secure-data-aggreg
 
 - Exploring Full Homomorphic Encryption for more complex computations (Including to approximate division with multiplicative inverse techniqu to compute basic financial metrics like profit margins, liquidity ratios or net income)
 - Exploring Multiple Homomorphic Encryption Libraries with a comparative analysis
-- Evaluating accuracy with plaintext and encrypted results
+- In Depth Analysis of different t and n values for a more balanced plaintext range with enough security
 - Frontend Integration with user friendly interface (with data visulisation techniques)
 - Scalable Storage Solutions into robust database like PostgreSQL or cloud storage
 - Enchanced Security with clodu based key management services
