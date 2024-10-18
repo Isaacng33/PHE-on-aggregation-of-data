@@ -50,13 +50,9 @@ Implemented with Flask as the framework in order to have a seamless futrue encha
 - Python 3.9
 - Docker
 - Git
-- C/C++ Compiler 
-```bash
-sudo apt install gcc g++
-```
-```macOS
-brew install gcc
-```
+- C/C++ Compiler
+- CMake
+
 
 #### Installation
 
