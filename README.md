@@ -11,6 +11,7 @@
 ### Project Overview
 
 The Secure Encrypted Data Aggregation POC is a backend simulation designed to demonstrate the feasibility of securely aggregating encrypted financial data using Partically Homomorphic Encryption. The system ensure that sensitive financial data remains confidential while allow an individual to view the results without exposing raw data.
+Implemented with Flask as the framework in order to have a seamless futrue enchancment into a web application
 
 ---
 
@@ -26,9 +27,9 @@ The Secure Encrypted Data Aggregation POC is a backend simulation designed to de
 
 ### Technology Stack
 
-- Python 3.8+
+- Python 3.9
   - Flask
-  - phe
+  - Pyfhel
   - pytest
   - Docker
   - Github Actions
@@ -38,7 +39,7 @@ The Secure Encrypted Data Aggregation POC is a backend simulation designed to de
 
 ### Libraries
 
-[python-paillier](https://github.com/data61/python-paillier)
+[Pyfhel]([https://github.com/data61/python-paillier](https://github.com/ibarrond/Pyfhel))
 
 ---
 
@@ -46,9 +47,12 @@ The Secure Encrypted Data Aggregation POC is a backend simulation designed to de
 
 #### Prerequisites
 
-- Python 3.8+
+- Python 3.9
 - Docker
 - Git
+- C/C++ Compiler
+- CMake
+
 
 #### Installation
 
@@ -76,8 +80,9 @@ docker run -d -p 5000:5000 --name secure_data_aggregation_poc secure-data-aggreg
 
 ### Future Enchancements
 
-- Exploring Full Homomorphic Encryption for more complex computations
+- Exploring Full Homomorphic Encryption for more complex computations (Including to approximate division with multiplicative inverse techniqu to compute basic financial metrics like profit margins, liquidity ratios or net income)
 - Exploring Multiple Homomorphic Encryption Libraries with a comparative analysis
+- Evaluating accuracy with plaintext and encrypted results
 - Frontend Integration with user friendly interface (with data visulisation techniques)
 - Scalable Storage Solutions into robust database like PostgreSQL or cloud storage
 - Enchanced Security with clodu based key management services

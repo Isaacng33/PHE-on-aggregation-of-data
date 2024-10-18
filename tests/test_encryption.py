@@ -1,40 +1,42 @@
 #tests/test_encryption.py
 '''Module to test encryption methods'''
-import pytest
-from app.encryption import (
-    generate_keys,
-    encrypt_number,
-    decrypt_number,
-    load_private_key,
-    load_public_key
-)
+import os
+from app.encryption import generate_keys, KEY_DIR, load_context_public, load_secret_key
+
+def test_generate_keys():
+    '''Test for key'''
+    # Ensure the keys directory is empty before the test
+    for file in os.listdir(KEY_DIR):
+        os.remove(os.path.join(KEY_DIR, file))
+
+    # Call the generate_keys function
+    result = generate_keys()
+
+    # Check if the function returned True
+    assert result is True
+
+    # Check if the files are not empty
+    assert os.path.getsize(os.path.join(KEY_DIR, 'context.pkl')) > 0
+    assert os.path.getsize(os.path.join(KEY_DIR, 'public_key.pkl')) > 0
+    assert os.path.getsize(os.path.join(KEY_DIR, 'secret_key.pkl')) > 0
+
+def test_load_context_public():
+    '''Ensure load public key & context function works'''
+    encryption_obj = load_context_public()
+    assert encryption_obj is not None
+
+def test_load_secret_key():
+    '''Ensure load private key function works'''
+    encryption_obj = load_context_public()
+    assert encryption_obj is not None
+
+    assert load_secret_key(encryption_obj) is True
 
 
-@pytest.fixture(scope="module")
-def key_pair():
-    '''Fixture to generate and load keys'''
-    assert generate_keys(), "Generation failed: Keys failed to generate"
-    public_key = load_public_key()
-    private_key = load_private_key()
-    assert public_key is not None, "Load failed: Public Key failed to load"
-    assert private_key is not None, "Load failed: Private Key failed to load"
-    return public_key, private_key
-
-def test_encryption(key_pair):
-    '''Test that encryption changes the original value.'''
-    public_key, _ = key_pair
-    original_value = 123
-    encrypted_value = encrypt_number(public_key, 123)
-    assert encrypted_value != original_value, (
-        "Encryption failed: Encrypted value equals the original."
-    )
-
-def test_decryption(key_pair):
-    '''Test that decryption retrieves the original value.'''
-    public_key, private_key = key_pair
-    original_value = 123
-    encrypted_value = encrypt_number(public_key, original_value)
-    decrypted_value = decrypt_number(private_key, encrypted_value)
-    assert decrypted_value == original_value, (
-        "Decryption failed: Decrypted value does not match the original."
-    )
+def clear_keys():
+    '''Clean up after the tests'''
+    for file in os.listdir(KEY_DIR):
+        file_path = os.path.join(KEY_DIR, file)
+        if os.path.isfile(file_path):
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.truncate(0)
