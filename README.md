@@ -29,7 +29,7 @@ Implemented with Flask as the framework in order to have a seamless futrue encha
 
 - Python 3.8+
   - Flask
-  - phe
+  - Pyfhel
   - pytest
   - Docker
   - Github Actions
@@ -39,7 +39,7 @@ Implemented with Flask as the framework in order to have a seamless futrue encha
 
 ### Libraries
 
-[python-paillier](https://github.com/data61/python-paillier)
+[Pyfhel]([https://github.com/data61/python-paillier](https://github.com/ibarrond/Pyfhel))
 
 ---
 
@@ -50,6 +50,11 @@ Implemented with Flask as the framework in order to have a seamless futrue encha
 - Python 3.8+
 - Docker
 - Git
+- C/C++ Compiler 
+```
+Ubuntu: sudo apt install gcc g++
+MacOS: brew install gcc
+```
 
 #### Installation
 
