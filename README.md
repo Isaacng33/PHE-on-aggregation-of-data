@@ -27,7 +27,7 @@ Implemented with Flask as the framework in order to have a seamless futrue encha
 
 ### Technology Stack
 
-- Python 3.8+
+- Python 3.9
   - Flask
   - Pyfhel
   - pytest
@@ -47,13 +47,15 @@ Implemented with Flask as the framework in order to have a seamless futrue encha
 
 #### Prerequisites
 
-- Python 3.8+
+- Python 3.9
 - Docker
 - Git
 - C/C++ Compiler 
+```bash
+sudo apt install gcc g++
 ```
-Ubuntu: sudo apt install gcc g++
-MacOS: brew install gcc
+```macOS
+brew install gcc
 ```
 
 #### Installation
