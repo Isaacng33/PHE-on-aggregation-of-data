@@ -1,86 +1,57 @@
 # app/encryption.py
 '''Encryption Module'''
 import os
-import json
-from phe import paillier
+from Pyfhel import Pyfhel
 
 KEY_DIR = os.path.join(os.path.dirname(__file__), '..', 'keys')
 
 
 def generate_keys():
     '''
-    Generates PaillierPublicKey and PaillierPrivateKey Object
-    Stores it in keys directory
-    Returns True or False
+    Generates Pyfhel context, public and private keys, and saves them to files.
+    Returns True if successful, False otherwise.
     '''
     try:
         # Ensure the keys directory exists
         os.makedirs(KEY_DIR, exist_ok=True)
 
-        public_key, private_key = paillier.generate_paillier_keypair()
+        encryption_obj = Pyfhel()
+        encryption_obj.contextGen(scheme='bfv', n=2**14, t_bits=20)
+        encryption_obj.keyGen()
 
-        # Save public key
-        with open(os.path.join(KEY_DIR, 'public_key.pem'), 'w', encoding='utf-8') as f:
-            json.dump({'n': str(public_key.n)}, f, indent=4)
+        # Save context and keys
+        encryption_obj.save_context(os.path.join(KEY_DIR, 'context.pkl'))
+        encryption_obj.save_public_key(os.path.join(KEY_DIR, 'public_key.pkl'))
+        encryption_obj.save_secret_key(os.path.join(KEY_DIR, 'secret_key.pkl'))
 
-        # Save private key with restricted permissions
-        with open(os.path.join(KEY_DIR, 'private_key.pem'), 'w', encoding='utf-8') as f:
-            json.dump({
-                'p': str(private_key.p),
-                'q': str(private_key.q)
-            }, f, indent=4)
-
-        print(f"Keys generated and saved to {KEY_DIR}")
+        print(f"Context and Keys generated and saved to {KEY_DIR}")
         return True
+    except Exception as e:
+        print(f"An unexpected error occured: {e}")
+        return False
 
-    except Exception as e:  # Catch any other unexpected exceptions
-        print(f"An unexpected error occurred: {e}")
-
-    return False
-
-def load_public_key():
+def load_context_public():
     '''
-    Loads the Paillier public key from .pem file.
-    Returns a PaillierPublicKey object.
+    Loads Context and Public keys from files
+    Returns a Pyfhel object with public context
     '''
     try:
-        with open(os.path.join(KEY_DIR, 'public_key.pem'), 'r', encoding='utf-8') as f:
-            public_key_data = json.load(f)
-        n = int(public_key_data['n'])
-        public_key = paillier.PaillierPublicKey(n)
-        return public_key
+        encryption_obj = Pyfhel()
+        encryption_obj.load_context(os.path.join(KEY_DIR, 'context.pkl'))
+        encryption_obj.load_public_key(os.path.join(KEY_DIR, 'public_key.pkl'))
+        return encryption_obj
     except FileNotFoundError:
-        print("Public key file not found")
+        print("One or more public Pyfhel files not found")
         return None
 
-def load_private_key():
+def load_secret_key(encryption_obj):
     '''
-    Loads the Paillier private key from .pem file
-    Returns a PaillierPrivateKey object
+    Loads the secret key for an existing Pyfhel object
+    Returns True if successful, False otherwise
     '''
     try:
-        with open(os.path.join(KEY_DIR, 'private_key.pem'), 'r', encoding='utf-8') as f:
-            private_key_data = json.load(f)
-        p = int(private_key_data['p'])
-        q = int(private_key_data['q'])
-
-        private_key = paillier.PaillierPrivateKey(load_public_key(), p, q)
-
-        return private_key
+        encryption_obj.load_secret_key(os.path.join(KEY_DIR, 'secret_key.pkl'))
+        return True
     except FileNotFoundError:
-        print("Private key file not found")
-        return None
-
-def encrypt_number(public_key, number):
-    '''
-    Encrypts a number based on a Paillier public key
-    Returns an encrypted value (EncryptedNumber)
-    '''
-    return public_key.encrypt(number)
-
-def decrypt_number(private_key, encrypted_nunber):
-    '''
-    Decrypts an encrypted value with a Paillier private key
-    Returns the int or float that EncryptedNumber was holding
-    '''
-    return private_key.decrypt(encrypted_nunber)
+        print("Secret key file not found")
+        return False
