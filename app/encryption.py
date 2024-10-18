@@ -1,22 +1,26 @@
 # app/encryption.py
 '''Encryption Module'''
 import os
+import numpy as np
 from Pyfhel import Pyfhel
 
 KEY_DIR = os.path.join(os.path.dirname(__file__), '..', 'keys')
 
 
-def generate_keys():
+def generate_keys(t_value=20):
     '''
     Generates Pyfhel context, public and private keys, and saves them to files.
     Returns True if successful, False otherwise.
+
+    Args:
+        t_value: specified plaintext modulus t
     '''
     try:
         # Ensure the keys directory exists
         os.makedirs(KEY_DIR, exist_ok=True)
 
         encryption_obj = Pyfhel()
-        encryption_obj.contextGen(scheme='bfv', n=2**14, t_bits=20)
+        encryption_obj.contextGen(scheme='bfv', n=2**14, t_bits=t_value)
         encryption_obj.keyGen()
 
         # Save context and keys
@@ -44,14 +48,52 @@ def load_context_public():
         print("One or more public Pyfhel files not found")
         return None
 
-def load_secret_key(encryption_obj):
+def load_secret(encryption_obj):
     '''
     Loads the secret key for an existing Pyfhel object
     Returns True if successful, False otherwise
     '''
     try:
         encryption_obj.load_secret_key(os.path.join(KEY_DIR, 'secret_key.pkl'))
-        return True
+        return encryption_obj
     except FileNotFoundError:
         print("Secret key file not found")
-        return False
+        return None
+
+def encrypt_int(encryption_obj, integer):
+    '''
+    Encrypts an integer using public key in object
+
+    Args:
+        encryption_obj: Pyfhel object
+        integer: Int to encrypt
+
+    Returns:
+        PyCtxt: An encrypted ciphertext of the input integer
+    '''
+    try:
+        int_array = np.array([integer], dtype=np.int64)
+        ciphertext = encryption_obj.encrypt(int_array)
+        return ciphertext
+    except Exception as e:
+        print(f"An error occurred while encrypting: {e}")
+        return None
+
+def decrypt_int(encryption_obj, ciphertext):
+    '''
+    Decrypts an encrypted integer using the secret key in the Pyfhel object.
+
+    Args:
+        encryption_obj: Pyfhel object with the secret key loaded.
+        ciphertext: PyCtxt, the encrypted integer to decrypt.
+
+    Returns:
+        Integer: The decrypted integer, or None if decryption fails.
+    '''
+    try:
+        decrypted_array = encryption_obj.decrypt(ciphertext)
+        integer = int(decrypted_array[0])
+        return integer
+    except Exception as e:
+        print(f"An error occurred while decrypting: {e}")
+        return None
