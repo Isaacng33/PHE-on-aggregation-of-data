@@ -138,3 +138,19 @@ def sub_encrypted(ciphertext_1, ciphertext_2):
         Sum: PyCtxt object 
     '''
     return ciphertext_1 - ciphertext_2
+
+def multiply_encrypted(encryption_obj, ciphertext_1, ciphertext_2):
+    '''
+    Performs multiplication on 2 encrypted values and relinearizes the result
+
+    Args:
+        encryption_obj: Pyfhel object containing the relinearization keys
+        ciphertext_1, ciphertext_2: encrypted PyCtxt Objects
+    
+    Returns:
+        Product: PyCtxt object after multiplication and relinearization
+    '''
+    product = ciphertext_1 * ciphertext_2
+    encryption_obj.relinearize(product)
+    encryption_obj.rescale_to_next(product)
+    return product
