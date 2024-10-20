@@ -1,8 +1,8 @@
 # app/encryption.py
 '''Encryption Module'''
 import os
-import numpy as np
-from Pyfhel import Pyfhel
+import base64
+from Pyfhel import Pyfhel, PyCtxt
 
 KEY_DIR = os.path.join(os.path.dirname(__file__), '..', 'keys')
 
@@ -154,3 +154,18 @@ def multiply_encrypted(encryption_obj, ciphertext_1, ciphertext_2):
     encryption_obj.relinearize(product)
     encryption_obj.rescale_to_next(product)
     return product
+
+def serialised_encrypted(ciphertext):
+    '''
+    Serialised a encrypted data into bytes
+    '''
+    return base64.b64encode(ciphertext.to_bytes()).decode('utf-8')
+
+def deserialised(data, encryption_obj):
+    '''
+    Deserialisd a serialised data
+    Returns PyCtxt object
+    '''
+    encrypted = PyCtxt(pyfhel=encryption_obj)
+    encrypted.from_bytes(base64.b64decode(data), 'float')
+    return encrypted

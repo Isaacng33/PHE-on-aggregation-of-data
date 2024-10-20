@@ -170,4 +170,3 @@ def clear_keys():
         if os.path.isfile(file_path):
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.truncate(0)
-
