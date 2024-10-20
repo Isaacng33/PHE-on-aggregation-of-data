@@ -2,6 +2,8 @@
 '''Module to handle API Routes'''
 import os
 import pandas as pd
+import pickle
+import gzip
 from tabulate import tabulate
 from flask import Blueprint, jsonify
 from app.encryption import (
@@ -30,66 +32,91 @@ encryption_obj = load_context_public()
 @main.route('/encrypt_all', methods=['GET'])
 def encrypt_all():
     """
-    In a real world scenario, we expect the data to be encrypted already
-    Function here is to simulate the real world situation
-    Route to encrypt all financial data (Income, Expenses, etc.) in the dataset and save it to a new file.
+    Encrypts all financial data (Income, Expenses, etc.) in the dataset and saves it to a new binary file.
+    Utilizes batching to optimize storage.
     """
     encrypted_dataset = []
-    # Iterate over all rows and encrypt the financial fields
+
+    # Iterate over all rows and encrypt the financial fields using batching
     for _, row in financial_data.iterrows():
-        encrypted_row = {
-            'User ID': row['User ID'],
-            'Encrypted Income': serialised_encrypted(encrypt_value(encryption_obj, row['Income (£)'])),
-            'Encrypted Expenses': serialised_encrypted(encrypt_value(encryption_obj, row['Expenses (£)'])),
-            'Encrypted Savings': serialised_encrypted(encrypt_value(encryption_obj, row['Savings (£)'])),
-            'Encrypted Investments': serialised_encrypted(encrypt_value(encryption_obj, row['Investments (£)'])),
-            'Encrypted Loans': serialised_encrypted(encrypt_value(encryption_obj, row['Loans (£)']))
-        }
-        encrypted_dataset.append(encrypted_row)
+        financial_values = [
+            row['Income (£)'],
+            row['Expenses (£)'],
+            row['Savings (£)'],
+            row['Investments (£)'],
+            row['Loans (£)']
+        ]
+        ciphertext = encrypt_value(encryption_obj, financial_values)
+        if ciphertext is not None:
+            serialized_ciphertext = serialised_encrypted(ciphertext)
+            encrypted_row = {
+                'User ID': row['User ID'],
+                'Encrypted Financials': serialized_ciphertext
+            }
+            encrypted_dataset.append(encrypted_row)
+        else:
+            print(f"Encryption failed for User ID: {row['User ID']}")
 
-    # Create a new DataFrame from the encrypted dataset
-    encrypted_df = pd.DataFrame(encrypted_dataset)
-    print(tabulate(encrypted_df, headers='keys', tablefmt='pretty'))
-
-    # Save the encrypted DataFrame to a new CSV file
-    new_data_path = os.path.join(os.path.dirname(__file__), '..', 'data/encrypted_financial_data.csv')
-    encrypted_df.to_csv(new_data_path, index=False)
-
-    return jsonify({"message": "All data encrypted and saved to a new file."}), 200
+    # Serialize and save the entire encrypted dataset using Pickle and Gzip
+    try:
+        save_path = os.path.join(os.path.dirname(__file__), '..', 'data/encrypted_financial_data.pkl.gz')
+        with gzip.open(save_path, 'wb') as file:
+            pickle.dump(encrypted_dataset, file)
+        print(f"Encrypted data saved to {save_path}")
+        return jsonify({"message": "All data encrypted and saved to a new binary file."}), 200
+    except Exception as e:
+        print(f"An error occurred while saving encrypted data: {e}")
+        return jsonify({"error": "Failed to save encrypted data."}), 500
 
 @main.route('/decrypt_all', methods=['GET'])
 def decrypt_all():
     """
-    Route to decrypt all encrypted financial data in the dataset.
-    Never really necessary since we will not access the raw data rather we only need the aggregated result
-    Function just to verify that the raw data integrity is there
+    Decrypts all encrypted financial data in the dataset.
+    Verifies data integrity by decrypting and displaying the raw data.
     """
-    # Path to the encrypted data CSV file
-    encrypted_data_path = os.path.join(os.path.dirname(__file__), '..', 'data/encrypted_financial_data.csv')
+    load_secret(encryption_obj)
+
+    # Path to the encrypted data binary file
+    encrypted_data_path = os.path.join(os.path.dirname(__file__), '..', 'data/encrypted_financial_data.pkl.gz')
 
     # Load the encrypted dataset
-    encrypted_df = pd.read_csv(encrypted_data_path)
+    try:
+        with gzip.open(encrypted_data_path, 'rb') as file:
+            encrypted_dataset = pickle.load(file)
+    except FileNotFoundError:
+        print("Encrypted data file not found.")
+        return jsonify({"error": "Encrypted data file not found."}), 404
+    except Exception as e:
+        print(f"An error occurred while loading encrypted data: {e}")
+        return jsonify({"error": "Failed to load encrypted data."}), 500
 
     decrypted_dataset = []
 
-    load_secret(encryption_obj)
     # Iterate over all rows and decrypt the financial fields
-    for _, row in encrypted_df.iterrows():
-        decrypted_row = {
-            'User ID': row['User ID'],
-            'Decrypted Income': decrypt_value(encryption_obj, deserialised(row['Encrypted Income'], encryption_obj)),
-            'Decrypted Expenses': decrypt_value(encryption_obj, deserialised(row['Encrypted Expenses'], encryption_obj)),
-            'Decrypted Savings': decrypt_value(encryption_obj, deserialised(row['Encrypted Savings'], encryption_obj)),
-            'Decrypted Investments': decrypt_value(encryption_obj, deserialised(row['Encrypted Investments'], encryption_obj)),
-            'Decrypted Loans': decrypt_value(encryption_obj,deserialised( row['Encrypted Loans'], encryption_obj))
-        }
-        decrypted_dataset.append(decrypted_row)
+    for row in encrypted_dataset:
+        try:
+            serialized_ciphertext = row['Encrypted Financials']
+            ciphertext = deserialised(serialized_ciphertext.encode('utf-8'), encryption_obj)
+            if ciphertext is not None:
+                decrypted_values = decrypt_value(encryption_obj, ciphertext)
+                decrypted_row = {
+                    'User ID': row['User ID'],
+                    'Decrypted Income': f"{decrypted_values[0]:.2f}",
+                    'Decrypted Expenses': f"{decrypted_values[1]:.2f}",
+                    'Decrypted Savings': f"{decrypted_values[2]:.2f}",
+                    'Decrypted Investments': f"{decrypted_values[3]:.2f}",
+                    'Decrypted Loans': f"{decrypted_values[4]:.2f}"
+                }
+                decrypted_dataset.append(decrypted_row)
+            else:
+                print(f"Deserialization failed for User ID: {row['User ID']}")
+        except Exception as e:
+            print(f"An error occurred while decrypting User ID {row['User ID']}: {e}")
 
+    # Create a new DataFrame from the decrypted dataset
     decrypted_df = pd.DataFrame(decrypted_dataset)
-    # Format each numerical column to 2 decimal places
-    float_columns = ['Decrypted Income', 'Decrypted Expenses', 'Decrypted Savings', 'Decrypted Investments', 'Decrypted Loans']
-    for col in float_columns:
-        decrypted_df[col] = decrypted_df[col].apply(lambda x: f"{x:.2f}")
 
+    # Display the decrypted data in a readable format (optional)
     print(tabulate(decrypted_df, headers='keys', tablefmt='pretty'))
-    return jsonify({"message": "All data decrypted and printed."}), 200
+
+    return jsonify({"message": "All data decrypted and displayed."}), 200

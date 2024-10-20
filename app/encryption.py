@@ -2,6 +2,8 @@
 '''Encryption Module'''
 import os
 import base64
+import pickle
+import gzip
 from Pyfhel import Pyfhel, PyCtxt
 
 KEY_DIR = os.path.join(os.path.dirname(__file__), '..', 'keys')
@@ -36,14 +38,14 @@ def generate_keys(n_value=2**14, scale_bits=30):
         encryption_obj.contextGen(**ckks_params)
         encryption_obj.keyGen()
         encryption_obj.relinKeyGen()
-        encryption_obj.rotateKeyGen()
+        # encryption_obj.rotateKeyGen()
 
         # Save context and keys
         encryption_obj.save_context(os.path.join(KEY_DIR, 'context.pkl'))
         encryption_obj.save_public_key(os.path.join(KEY_DIR, 'public_key.pkl'))
         encryption_obj.save_secret_key(os.path.join(KEY_DIR, 'secret_key.pkl'))
         encryption_obj.save_relin_key(os.path.join(KEY_DIR, 'relin_key.pkl'))
-        encryption_obj.save_rotate_key(os.path.join(KEY_DIR, 'rotate_key.pkl'))
+        # encryption_obj.save_rotate_key(os.path.join(KEY_DIR, 'rotate_key.pkl'))
 
         print(f"CKKS Context and Keys generated and saved to {KEY_DIR}")
         return True
@@ -61,7 +63,7 @@ def load_context_public():
         encryption_obj.load_context(os.path.join(KEY_DIR, 'context.pkl'))
         encryption_obj.load_public_key(os.path.join(KEY_DIR, 'public_key.pkl'))
         encryption_obj.load_relin_key(os.path.join(KEY_DIR, 'relin_key.pkl'))
-        encryption_obj.load_rotate_key(os.path.join(KEY_DIR, 'rotate_key.pkl'))
+        # encryption_obj.load_rotate_key(os.path.join(KEY_DIR, 'rotate_key.pkl'))
         return encryption_obj
     except FileNotFoundError:
         print("One or more public Pyfhel files not found")
@@ -110,7 +112,7 @@ def decrypt_value(encryption_obj, ciphertext):
     '''
     try:
         value = encryption_obj.decrypt(ciphertext)
-        return value[0]
+        return value
     except Exception as e:
         print(f"An error occurred while decrypting: {e}")
         return None
@@ -157,15 +159,34 @@ def multiply_encrypted(encryption_obj, ciphertext_1, ciphertext_2):
 
 def serialised_encrypted(ciphertext):
     '''
-    Serialised a encrypted data into bytes
+    Serializes encrypted data into compressed base64-encoded bytes.
     '''
-    return base64.b64encode(ciphertext.to_bytes()).decode('utf-8')
+    try:
+        serialized_bytes = ciphertext.to_bytes()
+        compressed_bytes = gzip.compress(serialized_bytes)
+        encoded_str = base64.b64encode(compressed_bytes).decode('utf-8')
+        return encoded_str
+    except Exception as e:
+        print(f"An error occurred during serialization: {e}")
+        return None
 
 def deserialised(data, encryption_obj):
     '''
-    Deserialisd a serialised data
-    Returns PyCtxt object
+    Deserializes a serialized encrypted data string back into a PyCtxt object.
+
+    Args:
+        data: Base64-encoded string of the serialized ciphertext.
+        encryption_obj: Pyfhel object.
+
+    Returns:
+        PyCtxt: The deserialized ciphertext object, or None if deserialization fails.
     '''
-    encrypted = PyCtxt(pyfhel=encryption_obj)
-    encrypted.from_bytes(base64.b64decode(data), 'float')
-    return encrypted
+    try:
+        compressed_bytes = base64.b64decode(data)
+        serialized_bytes = gzip.decompress(compressed_bytes)
+        encrypted = PyCtxt(pyfhel=encryption_obj)
+        encrypted.from_bytes(serialized_bytes, 'float')
+        return encrypted
+    except Exception as e:
+        print(f"An error occurred during deserialization: {e}")
+        return None
