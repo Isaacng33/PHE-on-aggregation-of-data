@@ -38,14 +38,14 @@ def generate_keys(n_value=2**14, scale_bits=30):
         encryption_obj.contextGen(**ckks_params)
         encryption_obj.keyGen()
         encryption_obj.relinKeyGen()
-        # encryption_obj.rotateKeyGen()
+        encryption_obj.rotateKeyGen()
 
         # Save context and keys
         encryption_obj.save_context(os.path.join(KEY_DIR, 'context.pkl'))
         encryption_obj.save_public_key(os.path.join(KEY_DIR, 'public_key.pkl'))
         encryption_obj.save_secret_key(os.path.join(KEY_DIR, 'secret_key.pkl'))
         encryption_obj.save_relin_key(os.path.join(KEY_DIR, 'relin_key.pkl'))
-        # encryption_obj.save_rotate_key(os.path.join(KEY_DIR, 'rotate_key.pkl'))
+        encryption_obj.save_rotate_key(os.path.join(KEY_DIR, 'rotate_key.pkl'))
 
         print(f"CKKS Context and Keys generated and saved to {KEY_DIR}")
         return True
@@ -63,7 +63,7 @@ def load_context_public():
         encryption_obj.load_context(os.path.join(KEY_DIR, 'context.pkl'))
         encryption_obj.load_public_key(os.path.join(KEY_DIR, 'public_key.pkl'))
         encryption_obj.load_relin_key(os.path.join(KEY_DIR, 'relin_key.pkl'))
-        # encryption_obj.load_rotate_key(os.path.join(KEY_DIR, 'rotate_key.pkl'))
+        encryption_obj.load_rotate_key(os.path.join(KEY_DIR, 'rotate_key.pkl'))
         return encryption_obj
     except FileNotFoundError:
         print("One or more public Pyfhel files not found")
@@ -190,3 +190,5 @@ def deserialised(data, encryption_obj):
     except Exception as e:
         print(f"An error occurred during deserialization: {e}")
         return None
+ 
+    

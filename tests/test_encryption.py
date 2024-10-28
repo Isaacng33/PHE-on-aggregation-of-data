@@ -31,7 +31,7 @@ def test_generate_keys():
     assert os.path.getsize(os.path.join(KEY_DIR, 'public_key.pkl')) > 0
     assert os.path.getsize(os.path.join(KEY_DIR, 'secret_key.pkl')) > 0
     assert os.path.getsize(os.path.join(KEY_DIR, 'relin_key.pkl')) > 0
-    # assert os.path.getsize(os.path.join(KEY_DIR, 'rotate_key.pkl')) > 0
+    assert os.path.getsize(os.path.join(KEY_DIR, 'rotate_key.pkl')) > 0
 
 def test_load_context_public():
     '''Ensure load public key & context function works'''
