@@ -18,7 +18,7 @@ from app.encryption import (
     sub_encrypted,
     multiply_encrypted,
     serialised_encrypted,
-    deserialised,
+    deserialised
 )
 
 main = Blueprint('main', __name__)
@@ -138,6 +138,7 @@ def decrypt_all():
 def aggregation():
     '''
     Homomorphically sums all the encrypted financial columns (Revenue, Expenses, etc.) before decrypting.
+    Decrypted Print statements are just for checking purposes
     '''
     load_secret(encryption_obj)
     encrypted_data_path = os.path.join(os.path.dirname(__file__), '..', 'data/encrypted_financial_data.pkl.gz')
@@ -182,3 +183,53 @@ def aggregation():
     serialised_ciphertext = serialised_encrypted(total)
 
     return jsonify({"message": "Aggregation succesfull", "data": serialised_ciphertext}), 200
+
+@main.route('/net_worth', methods=['GET'])
+def calculate_net_worth():
+    """
+    Calculates net worth from the total in aggregation: (Revenue + Savings + Investments) - (Expenses + Loans)
+    Returns encrypted results
+    Decrypted Print statements are just for checking purposes
+    """
+    load_secret(encryption_obj)
+    # Get all the sum values from /aggregate which returns a ciphertext of total
+    try:
+        agg_response = aggregation()
+        serialised_total = agg_response[0].json['data']
+        total_ciphertext = deserialised(serialised_total, encryption_obj)
+
+        if total_ciphertext is None:
+            return jsonify({"error": "Failed to deserialize aggregated data"}), 500
+        
+        # Sum of (Revenue + Savings + Investments)
+        positive_sum = total_ciphertext.copy() # Revenue
+
+        # Savings is at index 2
+        savings = total_ciphertext.copy()
+        savings <<= 2
+        positive_sum += savings
+
+        # Investments is at index 3
+        investments = total_ciphertext.copy()
+        investments <<= 3
+        positive_sum += investments
+
+        # Expenses at Index 1
+        negative_sum = total_ciphertext.copy() # Currently at Revenue
+        negative_sum <<= 1
+
+        # Add Loans
+        loans = total_ciphertext.copy()
+        loans <<= 4
+        negative_sum += loans
+
+        net_worth = sub_encrypted(positive_sum, negative_sum)
+        decrypted_net_worth = decrypt_value(encryption_obj, net_worth)
+        print(f"Net Worth: {decrypted_net_worth[0]:.2f}")
+        serialised_ciphertext = serialised_encrypted(net_worth)
+
+        return jsonify({"message": "Net worth calculation successful", "data": serialised_ciphertext}), 200
+
+    except Exception as e:
+        print(f"An error occurred during net worth calculation: {e}")
+        return jsonify({"error": "Failed to calculate net worth"}), 500

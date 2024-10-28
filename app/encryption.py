@@ -191,4 +191,3 @@ def deserialised(data, encryption_obj):
         print(f"An error occurred during deserialization: {e}")
         return None
  
-    
