@@ -63,7 +63,7 @@ def test_decrypt_value():
     data = np.array([10.5, -10.5, 0.0, 42.42, -42.42, 12345.678, -12345.678], dtype=np.float64)
     for number in data:
         ciphertext = encrypt_value(encryption_obj, number)
-        decrypted_number = decrypt_value(encryption_obj, ciphertext)
+        decrypted_number = decrypt_value(encryption_obj, ciphertext)[0]
         assert decrypted_number is not None, f"Decryption failed for number {number}."
         assert abs(decrypted_number - number) < 1e-3, (
             f"Decryption mismatch: {decrypted_number} vs {number}"
@@ -88,7 +88,7 @@ def test_add_encrypted():
         ciphertext_2 = encrypt_value(encryption_obj, num2)
 
         ciphertext_sum = add_encrypted(ciphertext_1, ciphertext_2)
-        decrypted_sum = decrypt_value(encryption_obj, ciphertext_sum)
+        decrypted_sum = decrypt_value(encryption_obj, ciphertext_sum)[0]
 
         assert is_within_tolerance(expected_sum, decrypted_sum), (
             f"Subtraction mismatch: {decrypted_sum} vs {expected_sum}"
@@ -113,7 +113,7 @@ def test_sub_encrypted():
         ciphertext_2 = encrypt_value(encryption_obj, num2)
 
         ciphertext_sum = sub_encrypted(ciphertext_1, ciphertext_2)
-        decrypted_sum = decrypt_value(encryption_obj, ciphertext_sum)
+        decrypted_sum = decrypt_value(encryption_obj, ciphertext_sum)[0]
 
         assert is_within_tolerance(expected_sum, decrypted_sum), (
             f"Subtraction mismatch: {decrypted_sum} vs {expected_sum}"
@@ -138,7 +138,7 @@ def test_multiply_encrypted():
         ciphertext_2 = encrypt_value(encryption_obj, num2)
 
         ciphertext_product = multiply_encrypted(encryption_obj, ciphertext_1, ciphertext_2)
-        decrypted_product = decrypt_value(encryption_obj, ciphertext_product)
+        decrypted_product = decrypt_value(encryption_obj, ciphertext_product)[0]
 
         assert is_within_tolerance(expected_product, decrypted_product), (
             f"Multiplication mismatch: {decrypted_product} vs {expected_product}"
@@ -170,4 +170,3 @@ def clear_keys():
         if os.path.isfile(file_path):
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.truncate(0)
-

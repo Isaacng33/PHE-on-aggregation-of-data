@@ -1,8 +1,10 @@
 # app/encryption.py
 '''Encryption Module'''
 import os
-import numpy as np
-from Pyfhel import Pyfhel
+import base64
+import pickle
+import gzip
+from Pyfhel import Pyfhel, PyCtxt
 
 KEY_DIR = os.path.join(os.path.dirname(__file__), '..', 'keys')
 
@@ -110,7 +112,7 @@ def decrypt_value(encryption_obj, ciphertext):
     '''
     try:
         value = encryption_obj.decrypt(ciphertext)
-        return value[0]
+        return value
     except Exception as e:
         print(f"An error occurred while decrypting: {e}")
         return None
@@ -154,3 +156,39 @@ def multiply_encrypted(encryption_obj, ciphertext_1, ciphertext_2):
     encryption_obj.relinearize(product)
     encryption_obj.rescale_to_next(product)
     return product
+
+def serialised_encrypted(ciphertext):
+    '''
+    Serializes encrypted data into compressed base64-encoded bytes.
+    '''
+    try:
+        serialized_bytes = ciphertext.to_bytes()
+        compressed_bytes = gzip.compress(serialized_bytes)
+        encoded_str = base64.b64encode(compressed_bytes).decode('utf-8')
+        return encoded_str
+    except Exception as e:
+        print(f"An error occurred during serialization: {e}")
+        return None
+
+def deserialised(data, encryption_obj):
+    '''
+    Deserializes a serialized encrypted data string back into a PyCtxt object.
+
+    Args:
+        data: Base64-encoded string of the serialized ciphertext.
+        encryption_obj: Pyfhel object.
+
+    Returns:
+        PyCtxt: The deserialized ciphertext object, or None if deserialization fails.
+    '''
+    try:
+        compressed_bytes = base64.b64decode(data)
+        serialized_bytes = gzip.decompress(compressed_bytes)
+        encrypted = PyCtxt(pyfhel=encryption_obj)
+        encrypted.from_bytes(serialized_bytes, 'float')
+        return encrypted
+    except Exception as e:
+        print(f"An error occurred during deserialization: {e}")
+        return None
+ 
+    
